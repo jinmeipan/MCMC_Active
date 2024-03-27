@@ -1,6 +1,10 @@
 % Read MCMC results
 
 folder='D:\Desktop\MCMC_Active-BASE-AM\';
+addpath(folder);
+addpath([folder,'common_codes'])
+addpath([folder,'common_codes\functions'])
+addpath([folder,'AtmosphericModel'])
 
 addpath(folder);
 folder_in=[folder,'Active_Real_0.5_Mv&Sig_together\']
