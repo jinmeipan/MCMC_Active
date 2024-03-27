@@ -1,20 +1,23 @@
-% All MCMC fortran code input files preparation
-% note, there are settings in this main code and more in the functions!
+% Prepare all MCMC Fortran code input files
+% note, there are user-specific settings for priors and running options, in this main code and more in the functions!
 
 clear all
 
 %% set folders
+package_folder='D:\Desktop\MCMC_Active-BASE-AM\';
+
 %folder for code
-folder_lib='D:\Project_NSF_Pan\MCMC\MCMCRunData_V3_Pits2_AM\!package\';
+folder_lib=package_folder;
 %folder to output Fortran inputs
-folder_out='D:\Project_NSF_Pan\MCMC\MCMCRunData_V3_Pits2_AM\!package\Active_Real_0.5_Mv&Sig_together\';
+folder_out=[package_folder,'Active_Real_0.5_Mv&Sig_together\'];
 %folder to retrieve prior information
-folder_in='D:\Project_NSF_Pan\MCMC\MCMCRunData_V3_Pits2_AM\!package\NewPR\';
+folder_in=[package_folder,'NewPR\'];
 
 
 %% start
 addpath(folder_lib);
 addpath([folder_lib,'common_codes'])
+addpath([folder_lib,'common_codes\functions'])
 addpath([folder_lib,'AtmosphericModel'])
 cd(folder_lib);
 
@@ -42,50 +45,55 @@ for ipits=1:69
     %% basic setting
     mcmc=MCMCRun4;
     mcmc.folder=[folder_out,site,num2str(ipits),'\'];  %subfolder for each pit~
+    
     %backup snowpit information into mcmc
     mcmc.sp=sp;
+    
     %set active backscattering frequency
     mcmc.active_freq=[10.2, 13.3, 16.7];  %to be revised!
-%     mcmc.active_freq=[10.2,16.7]
+
     %set active observation angle
     mcmc.active_theta=[50];               %to be revised!
+    
     %set active polarization
 %     mcmc.active_pol={'vv','vh'};               %to be revised! {'vv','hh','vh'}; changed from vv to vh~
     mcmc.active_pol={'vv'};
+    
     %set passive observations...
     mcmc.passive_freq=[];                 %to be revised!
     mcmc.passive_theta=[];                %to be revised!
     mcmc.passive_pol=[];                  %to be revised!
+    
     %used to set other measurements, usually set as []
     mcmc.other_measurements=[];           %to be revised!
+    
     %used to set snow class for your snowpit
     mcmc.SturmClass='taiga';              %to be revised!
     
     %total number of iterations
     mcmc.Niter=20000;
-%     mcmc.Niter=100000;  %to be revised to 200000
+
     %number of iteratios in burn-in period
     mcmc.Nburn=2000;
-%     mcmc.Nburn=5000;
-    
-    mcmc.stdSigma=Opt_Sigma_Error;    %note!!   %% to be revised!!
+
+    mcmc.stdSigma=Opt_Sigma_Error;       % to be revised!!
     
     
     %% write basic setting
-    mcmc=prep_runparam4(mcmc);  %Modified
+    mcmc=prep_runparam4(mcmc);
     
     %% write filenames
     mcmc=prep_filename4(mcmc);
     
     
     %% write microwave obserations
-%     mcmc=prep_tbobs4(mcmc,'syns',ipits);
     mcmc=prep_tbobs4(mcmc,'real',ipits);
     
     
     %% write priors
     %std/mean for SWE prior
     pr.SWE_std_ratio=1;
+    
     %prior for snow density, mean and std. Here used the values for taiga
     %snow in Sturm's class
     rho_mean=217; 
@@ -94,9 +102,8 @@ for ipits=1:69
     for i=1:6
         pr.density_mean{i}=repmat(rho_mean,i,1);
         pr.density_std{i}=repmat(rho_std,i,1);
-
-        %prior for grain size, fixed as pex=0.18 +/- mm, which is about 1
-        %mm geometric grain size
+        
+        %prior for exponential correlation length
         pr.pex_mean{i}=repmat(0.18,i,1);
         pr.pex_std{i}=repmat(0.18/2,i,1);  %revised from 0.18 to 0.18/2 due to normal distr.
     end
@@ -114,12 +121,12 @@ for ipits=1:69
     pr.soilT_std = 5;
 
     %soil moisture prior
-    pr.mv_soil_mean = 0.08; %changed back to 8%
+    pr.mv_soil_mean = 0.08; %changed back to 8% volumetric content
     pr.mv_soil_std = 0.08/2;
 
     %soil roughness prior
-    pr.roughness_mean = 0.1/100;  %not revised here, 1-mm mean  
-    pr.roughness_std = (0.1/2)/100;
+    pr.roughness_mean = 1/100;  %1-cm roughness, to be revised, like 1-mm
+    pr.roughness_std = (1/2)/100;
         
     %process and save prior 
     pr=reprocess(pr);
