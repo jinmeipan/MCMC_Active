@@ -126,7 +126,7 @@ for ipits=1:69
 
     %soil roughness prior
     pr.roughness_mean = 1/100;  %1-cm roughness, to be revised, like 1-mm
-    pr.roughness_std = (1/2)/100;
+    pr.roughness_std = (1/100)/2;
         
     %process and save prior 
     pr=reprocess(pr);
