@@ -18,13 +18,12 @@ properties
     %SWE ratio, fixed
     SWE_std_ratio
     
-    %basic
+    %prior information: basic
     swe_mean
     swe_std
-    sd_mean       %all sd prior is calculate from swe and average_density
-    sd_std
+    sd_mean       %sd prior is calculate from swe and density priors
+    sd_std        %sd prior is calculate from swe and density priors
 
-    
     density_mean  %1-6 layers
     density_std   %1-6 layers
     T_mean        %1-6 layers, used 274-T
@@ -44,9 +43,7 @@ properties
     mv_soil_std
     
     
-    %lognormal parameters, calculate directly from mean and std.
-    %note that the values were checked to be not far from the values fitted
-    %using lognormal distribution
+    %priors calculated assuming lognormal parameters, calculate directly from mean and std.
     swe_mu
     swe_sigma
     sd_mu
@@ -72,6 +69,7 @@ properties
     
     %note
     note
+    
 end %properties
 
 
@@ -100,7 +98,7 @@ methods
     
     
     
-    
+    %% external functions, reprocess SWE prior std
     function prior=reprocess(prior)
         %reprocess SWE, SD and dz prior given revised density prior, or SWE_std_ratio
         
@@ -120,50 +118,27 @@ methods
     
     
     
-
-    
-
-    
-    
-    %% for local prior
+    %% local priors
     function prior=relayering(prior)
+        addpath('D:\Desktop\MCMC_Active-BASE-AM\')
         for ip=1:length(prior.spsr)
-            
             snowpit=prior.spsr(ip);
-            
             for ilyr=1:6
-                %reread Y, because Sodankyla snowpit has adde ice lense
-                %information
                 Zeros=zeros(snowpit.nlayer,1);
-                %note that, I added one more field as dmax than what is
-                %required by MEMLS
+                %note that, I added one more field as dmax than what is required by MEMLS
                 Y_in = [[1:1:snowpit.nlayer]', snowpit.T, Zeros, snowpit.density, snowpit.dz*100, Zeros, snowpit.pex, snowpit.dmax];
-                
                 Y_out=resample2(Y_in,ilyr);
-                
                 snowpit.Y{ilyr+1}=Y_out;
-                
-                
-%                 disp('Y_in');
-%                 disp(num2str(Y_in));
-%                 disp('Y_out');
-%                 disp(num2str(Y_out));
-                
             end
-            
             prior.spsr(ip)=snowpit;
         end
     end
    
     
-    
     function prior=calc_local(prior)
         prior=extract_prop(prior,'SWE');
-        
         prior=extract_prop(prior,'soilT');
-        %prior=extract_prop(prior,'roughness_fitted');  %because there is no roughness measurements
         prior=extract_prop(prior,'mv_soil');
-        
         prior=extract_prop2(prior,'density');
         prior=extract_prop2(prior,'T');
         prior=extract_prop2(prior,'dmax');
@@ -173,7 +148,6 @@ methods
     
     
     function prior=extract_prop(prior,value)
-        
         np = length(prior.spsr);
         data=nan(np,1);
         
@@ -181,7 +155,6 @@ methods
             strr = ['data(i) = prior.spsr(i).',value,';'];
             eval(strr);
         end
-        
         idx=find(isnan(data));
         data(idx)=[];
         
@@ -236,15 +209,15 @@ methods
                 eval(['prior.',value,'_std{ilyr,1}(i,1)=stds;'])
             end
         end
-        
     end    
     
     
-    
-    %% for generic prior
+    %% generic priors
+    %This function sets the generic SWE prior according to the VIC model
+    %simulations
     function prior=read_swe(prior)
         %set SWEr
-        %extract SWE, accoring to month-site
+        %extract SWE, accoring to month & site
         switch prior.site
             case 'sdkl'
               SWEr=[1	65.57	52.13293754
@@ -292,7 +265,7 @@ methods
     end
     
     
-    
+    %This function set the snow paramters according to Sturm's snow classes
     function prior=read_class(prior)
         %set according to snow_type
         %determine density, 274-T, dmax and pex
@@ -325,7 +298,6 @@ methods
         end
         T_means=T_means+273.15;
         
-        
         for ilyr=1:6
             prior.T_mean{ilyr}=ones(ilyr,1) * (T_means);
             prior.T_std{ilyr}=ones(ilyr,1) * T_stds;
@@ -340,15 +312,14 @@ methods
             prior.pex_std{ilyr}=ones(ilyr,1)* 0.18;
         end
     end
-            
+             
     
-    
-    
-    
-    %% secondary functions
+    %% 2nd step settings
+    %This funcition is used to set default soil parameters,
+    %fixed as shown here. You can make revisions if needed.
     function prior = default_soil_mean(prior)
         if(isempty(prior.soilT_mean)==1)
-            %as the bottom-most soil temperature
+            %set soil temperature as the bottom-most snow temperature
             prior.soilT_mean = prior.T_mean{6}(1);
             prior.soilT_std = prior.T_std{6}(1);
         else if (isnan(prior.mv_soil_mean)==1)
@@ -377,10 +348,12 @@ methods
     end
     
     
+    %This function calculates the snow depth priors from snow water
+    %equivalent and snow density priors.
     function prior=process_dz(prior)
         %reprocess SD
         SWE_mean=prior.swe_mean;         %mm
-        SWE_std=prior.swe_std;           
+        SWE_std=prior.swe_std;           %mm
         density_mean=prior.density_mean{1}; %kg/m^3
         density_std=prior.density_std{1};   %kg/m^3
         
@@ -404,6 +377,10 @@ methods
     
     
     
+    %This function is used to calculate parameters if 
+    %a prior is assumed to follow lognormal distributions.
+    %the lognormal distribution parameters are converted from mean
+    %and standard deviation as shown here.
     function prior=calc_lognparam(prior)
         
         m=prior.swe_mean;
@@ -416,15 +393,13 @@ methods
         prior.sd_mu = log((m^2)/sqrt(v+m^2));
         prior.sd_sigma = sqrt(log(v/(m^2)+1));
         
-        
-        %for each layers
+        %for snow parameters, for each layer plan
         for i=1:6
             m=prior.density_mean{i};
             v=prior.density_std{i}.^2;
             prior.density_mu{i,1} = log((m.^2)./sqrt(v+m.^2));
             prior.density_sigma{i,1} = sqrt(log(v./(m.^2)+1));
 
-            %m=prior.T_mean{i};
             m=274-prior.T_mean{i};    
             v=prior.T_std{i}.^2;
             prior.T_mu{i,1} = log((m.^2)./sqrt(v+m.^2));
@@ -447,7 +422,6 @@ methods
         end
         
         %for soil parameters
-        %m=prior.soilT_mean;
         m=279-prior.soilT_mean;
         v=prior.soilT_std.^2;
         prior.soilT_mu = log((m^2)/sqrt(v+m^2));
@@ -463,6 +437,6 @@ methods
         prior.mv_soil_mu = log((m^2)/sqrt(v+m^2));
         prior.mv_soil_sigma = sqrt(log(v/(m^2)+1));
     end
-   
+    
 end  %methods
 end  %classdef
