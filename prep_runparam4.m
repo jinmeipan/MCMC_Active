@@ -12,11 +12,11 @@ folder0=MCMCRun4.folder;
 mkdir(folder0);
 
 %% basic settings
-MCMCRun4.NlyrMax=2;   %revised to 3
+MCMCRun4.NlyrMax=2;
 MCMCRun4.Npits=1;
 MCMCRun4.stdTb=2;
                        % !!!!!!!!     important changes here!!
-%MCMCRun4.stdSigma=0.5; %changed from 0.1 to 0.2 dB (hypothesis, 0.1 dB may result in overfit)
+%MCMCRun4.stdSigma=0.5; %changed from 0.1 to 0.5 dB (hypothesis, 0.1 dB may result in overfit)
 MCMCRun4.ModelOpt=1;   %1 (MEMLS), 2 (HUT), 3 (DMRT-ML), 4 (DMRT-QMS)
 MCMCRun4.ScatOpt=2;    %2 (MEMLS-IBA)
 MCMCRun.UsePrior=1;
@@ -43,12 +43,6 @@ MCMCRun4.MCMC_pol=[repmat('p',MCMCRun4.passive_np),repmat('a',MCMCRun4.active_np
 
 %calculate atm Tb, using -15 degC, 80% RH, and 1000 hPa (no strong
 %difference using other inputs)
-% systemfolder='/Users/jinmeipan/GoogleDrive/SolveHUT_MEMLS/';
-% systemfolder2='/Users/jinmeipan/GoogleDrive/MCMC_new/';
-% addpath([systemfolder,'simulation']);
-% addpath([systemfolder,'AtmosphericModel']);
-% addpath([systemfolder2,'MCMC_DataPrep/RT/MEMLS3&a']);
-
 Tair=-15+273.15;
 pressure=1000;
 rh=80;
@@ -254,7 +248,7 @@ fprintf(fid_rp,'%10.4f\n',0.3);
 
 fprintf(fid_rp,'Minimum & Maximum limits for model parameter, P_Q\n');
 fprintf(fid_rp,'%10.4f\n',0.08);
-fprintf(fid_rp,'%10.4f\n',0.12); %correct 1.2
+fprintf(fid_rp,'%10.4f\n',0.12);
 
 fprintf(fid_rp,'Minimum & Maximum limits for model parameter, P_SR\n');
 fprintf(fid_rp,'%10.4f\n',0.5);
