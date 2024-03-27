@@ -377,22 +377,26 @@ methods
             a=mcmc_results.mcmc_swe_std; %mcmc_sd_std;(?)
         end
         
-        alpha=0.05;
-        [b,idx,outliers]=deleteoutliers(a,alpha);
-        
-        mcmc_results.mcmc_outliers=a*0;
-        mcmc_results.mcmc_outliers(idx)=1;
-        
-        figure(999);hold on;
-        plot(mcmc_results.date,mcmc_results.true_swe,'bo');
-        plot(mcmc_results.date,mcmc_results.mcmc_swe,'kx');
-        plot(mcmc_results.date,a,'g^','MarkerSize',12);
-        aa_axis=axis;
-        for i=1:length(idx)
-            plot([mcmc_results.date(idx(i)),mcmc_results.date(idx(i))],...
-                 [aa_axis(3),aa_axis(4)],'g--','LineWidth',1.0);
+        if(0) %not do outlier detection anymore
+            alpha=0.05;
+            [b,idx,outliers]=deleteoutliers(a,alpha);
+
+            mcmc_results.mcmc_outliers=a*0;
+            mcmc_results.mcmc_outliers(idx)=1;
+
+            figure(999);hold on;
+            plot(mcmc_results.date,mcmc_results.true_swe,'bo');
+            plot(mcmc_results.date,mcmc_results.mcmc_swe,'kx');
+            plot(mcmc_results.date,a,'g^','MarkerSize',12);
+            aa_axis=axis;
+            for i=1:length(idx)
+                plot([mcmc_results.date(idx(i)),mcmc_results.date(idx(i))],...
+                     [aa_axis(3),aa_axis(4)],'g--','LineWidth',1.0);
+            end
+            legend('measured swe','mcmc swe','mcmc swe std','outliers')
+        else
+            mcmc_results.mcmc_outliers=a*0;
         end
-        legend('measured swe','mcmc swe','mcmc swe std','outliers')
     end
 
     
