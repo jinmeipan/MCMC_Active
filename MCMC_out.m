@@ -1,95 +1,84 @@
 % Read MCMC results
-if(1)
-% clear all
-% close all
-folder='D:\Project_NSF_Pan\MCMC\MCMCRunData_V3_Pits2_AM\!package\';
+
+folder='D:\Desktop\MCMC_Active-BASE-AM\';
 
 addpath(folder);
 folder_in=[folder,'Active_Real_0.5_Mv&Sig_together\']
 
-% folder_in='/Users/jinmeipan/Downloads/MCMCRunData_V3_Pits2/Active_Syns_0.5_MvOnly/';
-% folder_in='/Users/jinmeipan/Downloads/MCMCRunData_V3_Pits2/Active_Real_0.5_MvOnly/';
-% folder_in='/Users/jinmeipan/Downloads/MCMCRunData_V3_Pits2/Active_Real_0.5_Mv&Sig_together/';
-% folder_in='/Users/jinmeipan/Downloads/MCMCRunData_V3_Pits2/Active_Syns_0.5_Mv&Sig/';
-
-
-iplots=1;
+%run settings
 isave=0;  %whether you want to overwrite the mcmc-result.mat in Fortran folders
-ShowDetails=1;
+ShowDetails=1; %whether you want to plot details of results for each snowpit
 
-
-% icheck=[42,41,39,38,29,28,27,26,25,19,16]; %first run, before using epssoil_Pan
-% icheck=50; %1:69;
+%id of snowpits to be checked
 icheck=1:69;
-% icheck=18;
-% icheck=1;
 N=max(icheck);
 
-mcmc_sd=mcmc_results;  %sd means sodankyla here~
 
+%define result files
+mcmc_sd=mcmc_results;  %note:sd means sodankyla here
 
-
-dz_res=nan(N,2);  %!check!!
-dz_obsr=nan(N,2);  %!check!!
-pex_res=nan(N,2);  %!check!!
-pex_obsr=nan(N,2);  %!check!!
+dz_res=nan(N,2);
+dz_obsr=nan(N,2);
+pex_res=nan(N,2);
+pex_obsr=nan(N,2);
 dz_pr=nan(N,2);
 pex_pr=nan(N,2);
 
 
-for i=1:N  %to be revised
+%% starting, read MCMC results
+for i=1:N
     
     if(sum(i==icheck)==0)  %check the snowpits in icheck
         continue
     end
     
-    
- if(1)  %change 0 to 1 to generate mcmc results for each Fortran output
-    mcmc=MCMCRun4;
-    filename=[folder_in,'sd',num2str(i),'\MCMC.mat'];
-    load(filename);
-    
-    %read MCMC results
-    mcmc.folder=[folder_in,'sd',num2str(i),'\'];
-    mcmc.Run_location=0;  %skip two 4 bytes, use 1; otherwise, use 0
-    if(0)               %%%% to be revised!!!!!!
-        %let probability calculation to chooese layers
-        mcmc.Lyrplan=1;
-    else
-        %fixed choice of layers, with mandantory layer choice as mcmc.Nlyr_choose
-        mcmc.Lyrplan=2;mcmc.Nlyr_choose=2;
-    end
-    
-    mcmc.SturmClass='taiga';
-    mcmc=mcmc.Main;
-    
-    symbol=['pit',num2str(i)]; %set title of the plots
-    close all;mcmc.PlotProfileCompare(1,symbol,33);
-    if(ShowDetails==0)
-        %%
-    mcmc.PlotProfileCompare(1,symbol,33);
-    mcmc.PlotObsChains(1,symbol);
-    mcmc.PlotParamResult('dz',1,symbol);
-    mcmc.PlotParamResult('D',1,symbol);
-    mcmc.PlotParamResult('rho',1,symbol);
-    mcmc.PlotParamResult('Tsnow',1,symbol);
-    mcmc.PlotParamResult('Tsoil',1,symbol);
-    mcmc.PlotParamResult('mvs',1,symbol);
-    mcmc.PlotParamResult('sig',1,symbol);
-%     mcmc.PlotParamResult('sd',1,symbol);
-%     mcmc.PlotParamResult('swe',1,symbol);
-%     mcmc.PlotParamResult('P_M',1,symbol);
-    mcmc.PlotParamResult('P_Q',1,symbol);
-%     mcmc.PlotParamResult('P_SR',1,symbol);
-    end
-    
-    %save results
-    if(isave==1)
-        save([folder_in,'sd',num2str(i),'/MCMC-res.mat'],'mcmc');
-    end
- else  %directly read mcmc results
-     load([folder_in,'sd',num2str(i),'/MCMC-res.mat'],'mcmc');
- end
+     if(1)   %process mcmc results
+        mcmc=MCMCRun4;
+        filename=[folder_in,'sd',num2str(i),'\MCMC.mat'];
+        load(filename);
+
+        %read MCMC results
+        mcmc.folder=[folder_in,'sd',num2str(i),'\'];
+        mcmc.Run_location=0;  %skip two 4 bytes, use 1; otherwise, use 0
+        if(0)
+            %let probability calculation to chooese layers
+            mcmc.Lyrplan=1;
+        else
+            %fixed choice of layers, with mandantory layer choice as mcmc.Nlyr_choose
+            mcmc.Lyrplan=2;mcmc.Nlyr_choose=2;
+        end
+
+        mcmc.SturmClass='taiga';
+        mcmc=mcmc.Main;
+
+        symbol=['pit',num2str(i)]; %set title of the plots
+        close all;mcmc.PlotProfileCompare(1,symbol,33);
+
+        if(ShowDetails==0)
+            mcmc.PlotProfileCompare(1,symbol,33);
+            mcmc.PlotObsChains(1,symbol);
+            mcmc.PlotParamResult('dz',1,symbol);
+            mcmc.PlotParamResult('D',1,symbol);
+            mcmc.PlotParamResult('rho',1,symbol);
+            mcmc.PlotParamResult('Tsnow',1,symbol);
+            mcmc.PlotParamResult('Tsoil',1,symbol);
+            mcmc.PlotParamResult('mvs',1,symbol);
+            mcmc.PlotParamResult('sig',1,symbol);
+        %     mcmc.PlotParamResult('sd',1,symbol);
+        %     mcmc.PlotParamResult('swe',1,symbol);
+        %     mcmc.PlotParamResult('P_M',1,symbol);
+            mcmc.PlotParamResult('P_Q',1,symbol);
+        %     mcmc.PlotParamResult('P_SR',1,symbol);
+        end
+
+        %save results
+        if(isave==1)
+            save([folder_in,'sd',num2str(i),'/MCMC-res.mat'],'mcmc');
+        end
+
+     else  %directly read mcmc results
+         load([folder_in,'sd',num2str(i),'/MCMC-res.mat'],'mcmc');
+     end
  
     disp(['Number of layers chosen at Pit ',num2str(i),' : ',num2str(mcmc.nHat)]);
     disp(['True SWE:',num2str(mcmc.sp.SWE),' - MCMC SWE:',num2str(mcmc.sweHat)]);
@@ -97,7 +86,8 @@ for i=1:N  %to be revised
     
     mcmc_sd=getmcmc(mcmc_sd,mcmc,i,'sd');
     
-    %%this code valid only for 2-layer choice
+    
+    %this code valid only for 2-layer choice
     if(1)
         Zeros=repmat(0,mcmc.sp.nlayer,1);
         Y_in=[[1:1:mcmc.sp.nlayer]', mcmc.sp.T, Zeros, mcmc.sp.density, mcmc.sp.dz*100, Zeros, mcmc.sp.pex];
@@ -115,15 +105,11 @@ for i=1:N  %to be revised
     
     dz_pr(i,:)=mcmc.DzMean{1,2}';
     pex_pr(i,:)=mcmc.DMean{1,2}';
-%     dz_pr(i,:)=exp(mcmc.DzMu{1,2}');
-%     pex_pr(i,:)=exp(mcmc.DMu{1,2}');
-    
 end
 
 
-%%
 
-%%
+%% plot time-series snow depth and pex estimations
 %this code valid only for 2-layer choice
 figure;
 set(gcf,'color','w','position',[0,0,1200,300]);
@@ -139,10 +125,10 @@ subplot(1,2,2);
 title('Surface Layer')
 plot(mcmc_sd.date,dz_obsr(:,2)/100,'bx'); hold on;
 plot(mcmc_sd.date,dz_res(:,2),'rx');
-% % plot(mcmc_sd.date,dz_pr(:,2),'g+'); %revised on 2023/3/14
 plot(mcmc_sd.date,dz_pr(:,2).*dz_pr(:,1),'g+');
 legend('Obsr','MCMC','Prior');
 xlabel('PitNo.');ylabel('Layer thickness (m)')
+
 %
 figure;
 set(gcf,'color','w','position',[0,0,1200,300]);
@@ -164,16 +150,11 @@ xlabel('PitNo.');ylabel('P_{ec} (mm)')
 
 
 
-
 %%
-
 mcmc_sd.opt_recalc_swe=0;
 mcmc_sd.opt_delete_outlier=1;
 mcmc_sd=mcmc_sd.detect_outlier;
 
-
-
-end
 
 
 %% plots
@@ -194,9 +175,10 @@ mcmc_sd.plot_timeseries('tsnowavg',205,PlotNo);
 mcmc_sd.plot_timeseries('tsoil',206,PlotNo);
 mcmc_sd.plot_timeseries('mvs',207,PlotNo);
 mcmc_sd.plot_timeseries('sig',208,PlotNo);
-% mcmc_sd.plot_timeseries('Qavg',209,PlotNo);
+mcmc_sd.plot_timeseries('Qavg',209,PlotNo);
 
-%%
+
+%% export errors
 fname=[folder_in,'!mcmc_res.txt'];
 fid=fopen(fname,'a');
 mcmc_sd.error_stat('sd',fid);
@@ -204,6 +186,3 @@ mcmc_sd.error_stat('swe',fid);
 mcmc_sd.error_stat('rhoavg',fid);
 mcmc_sd.error_stat('Davg',fid);
 fclose(fid);
-
-% AA=mcmc_sd.mcmc_sd;
-% open AA
