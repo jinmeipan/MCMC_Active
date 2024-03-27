@@ -27,20 +27,20 @@ properties
     pr_swe
     pr_sd
     
-    %mcmc snowpit properties
-    mcmc_sd
-    mcmc_swe
-    mcmc_swe2
-    mcmc_dz
-    mcmc_rhoavg
-    mcmc_rho
-    mcmc_D
-    mcmc_Davg
-    mcmc_tsnowavg
-    mcmc_tsoil
-    mcmc_mvs
-    mcmc_sig
-    mcmc_Qavg
+    %mcmc snowpit property estimation
+    mcmc_sd  %snow depth
+    mcmc_swe  %snow water equivalent
+    mcmc_swe2  %snow water equivalent calculted using the prior snow density
+    mcmc_dz   %layer thickness
+    mcmc_rhoavg  %profile-average snow density
+    mcmc_rho     %layer density
+    mcmc_D       %layer pex
+    mcmc_Davg    %profile-average pex
+    mcmc_tsnowavg  %profile-average snow temperature
+    mcmc_tsoil    %soil temperature
+    mcmc_mvs      %soil water content
+    mcmc_sig      %soil roughness
+    mcmc_Qavg     %Q
     
     %true snowpit properties
     true_sd
@@ -57,8 +57,7 @@ properties
     true_sig
     true_Qavg
     
-    
-    %outliers
+    %uncertainties and outliers
     mcmc_sd_std
     mcmc_swe_std
     mcmc_Davg_std
@@ -66,7 +65,7 @@ properties
     mcmc_nHat
     mcmc_outliers
     
-    %observations
+    %radar observations
     mcmc_obsr
     true_obsr
     mcmc_obsr_simu %to reconfirm the observation model in MCMC
@@ -78,7 +77,7 @@ methods
        
         mcmc_results.Npits=max(mcmc_results.Npits,i);
 
-        %read into snow properties using fields in mcmcresults
+        %read into snow properties using fields in mcmc results
         %basic information
         mcmc_results.site(i,1)=str2num(mcmc.sp.site(end));
         
@@ -111,30 +110,26 @@ methods
         
         mcmc_results.true_sd(i,1)=mcmc.sp.SD;
         
+        
         %mcmc_results.true_swe(i,1)=mcmc.sp.SWE;
-%         sp.Y{1}=[[1:1:sp.nlayer]', sp.T, Zeros, sp.density, sp.dz*100, Zeros, sp.pex];
         Y00=mcmc.sp.Y{1};
         mcmc_results.true_swe(i,1)=sum(Y00(:,4).*Y00(:,5)/100);
         mcmc_results.true_dz{i,1}=mcmc.sp.dz;
         
-        
-        if(1) %Mar25
         mcmc_results.true_rho{i,1}=mcmc.sp.density;
         mcmc_results.true_rhoavg(i,1)=mcmc.sp.avg_density;
         mcmc_results.true_D{i,1}=mcmc.sp.pex;
         mcmc_results.true_Davg(i,1)=mcmc.sp.avg_pex;   %to be revised, whether use sp_processed or not~
         mcmc_results.true_tsnowavg(i,1)=mcmc.sp.avg_T-273.15;
-        end
 
-        
         mcmc_results.true_tsoil(i,1)=mcmc.sp.soilT(1)-273.15;
         mcmc_results.true_mvs(i,1)=mcmc.sp.mv_soil(1)*100; 
         
-        
-        if(1) %Mar25
+        if(1)
             %revised 2023-3-14
-            load('D:\Project_NSF_Pan\MCMC\MCMCRunData_V3_Pits2_AM\!package\fit_pex\snowpit_all.mat','sp_processed');
-            mcmc_results.true_sig(i,1)=sp_processed(i).roughness_fitted*1000;
+            addpath('D:\Desktop\MCMC_Active-BASE-AM\common_codes\functions')
+            load('D:\Desktop\MCMC_Active-BASE-AM\fit_pex\snowpit_all.mat','sp_processed');
+            mcmc_results.true_sig(i,1)=sp_processed(i).roughness_fitted*1000; %mm to m
             mcmc_results.true_Davg_fitted(i,1)=sp_processed(i).avg_pex * sp_processed(i).pex_scaler1 * sp_processed(i).pex_scaler2;
         end
         
@@ -199,7 +194,8 @@ methods
                 end
             end
         end
-        legend('iop1','iop2','iop3','iop4','location','northwest');  
+%         legend('iop1','iop2','iop3','iop4','location','northwest');  
+        title(['iop',num2str(iops)]);
            
         %plot prior if available
         if(strcmp(property,'swe')==1 | strcmp(property,'sd')==1)
@@ -216,30 +212,9 @@ methods
                 idx=find(mcmc_results.site==iops(i));
                 plot(mcmc_results.true_Davg_fitted(idx), mcmc_results.mcmc_Davg(idx),'bx',...
                     'MarkerSize',10,'color',colorstr{i});
-                
-                if(0) %commented 2023/3/14
-                switch i
-                    case 1
-                        date_start=datenum(2009,12,13);
-                    case 2
-                        date_start=datenum(2010,11,6);
-                    case 3
-                        date_start=datenum(2012,1,20);
-                    case 4
-                        date_start=datenum(2012,11,28);
-                end
-                
-                idx1=find(mcmc_results.site==iops(i) & mcmc_results.date<=date_start);
-                idx2=find(mcmc_results.site==iops(i) & mcmc_results.date>date_start);
-                
-                plot(mcmc_results.true_Davg(idx1), mcmc_results.mcmc_Davg(idx1),'b^',...
-                    'MarkerSize',14,'color',colorstr{i});
-                plot(mcmc_results.true_Davg(idx2), mcmc_results.mcmc_Davg(idx2),'bsq',...
-                    'MarkerSize',10,'color',colorstr{i});
-                end
             end
-            %plot example for iop1 only~!
-            legend('iop1-true','iop1-fitted','iop1-true-rg1','iop1-true-rg2','location','northwest');  
+%             %plot example for iop1 only~!
+%             legend('iop1-true','iop1-fitted','iop1-true-rg1','iop1-true-rg2','location','northwest');  
         end
         
 
@@ -281,10 +256,6 @@ methods
             mcmc_results.mcmc_swe=mcmc_results.mcmc_swe2; %use the prior density to recalcualte swe instead
         end
         
-        %Mar25, add to change sd
-%         if(strcmp(property,'sd')==1)
-%             mcmc_results.true_sd=mcmc_results.true_sd/100;
-%         end
             
         figure(figureNo);hold on;
         eval(['plot(mcmc_results.date,mcmc_results.true_',property,',''bo'',''LineWidth'',1.0);'])
@@ -373,8 +344,6 @@ methods
     
     
     function plot_obsr_error(mcmc_results,figureNo)
-        %mcmc_results.mcmc_obsr(i,1)=obsr_sigma(2:end);
-        %mcmc_results.true_obsr(i,1)=mcmc_sigma(2:end);
         colorstr={'kx','ro','gsq'};
         ylabelstr={'\sigma_0^{vv}','\sigma_{vh}'};
         
@@ -382,10 +351,6 @@ methods
         for ipp=1:mcmc_results.Np
             subplot(mcmc_results.Np,1,ipp);hold on;
             for iff=1:mcmc_results.Nf
-%                 plot(mcmc_results.date,mcmc_results.true_obsr(:,iff+(ipp-1)*mcmc_results.Nf),...
-%                     'ko','color',colorstr{iff});
-%                 plot(mcmc_results.date,mcmc_results.mcmc_obsr(:,iff+(ipp-1)*mcmc_results.Nf),...
-%                     'kx','color',colorstr{iff});
                  error_sigma=mcmc_results.mcmc_obsr(:,iff+(ipp-1)*mcmc_results.Nf) - mcmc_results.true_obsr(:,iff+(ipp-1)*mcmc_results.Nf);
                  plot(mcmc_results.date,error_sigma,colorstr{iff},'LineWidth',1.0);
             end
