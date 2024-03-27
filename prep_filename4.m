@@ -1,7 +1,4 @@
 %filename_prepare
-%
-% input:
-% -file: the filename for site,month,model-specific choice
 
 function MCMCRun4=prep_filename4(MCMCRun4)
 
