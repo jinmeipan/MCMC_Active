@@ -24,7 +24,7 @@ MCMCRun.UsePrior=1;
 %whether m,q,SR will be estimated in MCMC (parameters used for the MEMLS
 %backscattering simulation)
 Estimate_M=0;
-Estimate_Q=1; %Estimated Q for Q-parameteziation Method 2&3, not Method 1
+Estimate_Q=1; %Estimated Q
 Estimate_SR=0;
 
 %combine frequencies and thetas
