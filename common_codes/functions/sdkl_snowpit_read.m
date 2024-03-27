@@ -1,7 +1,7 @@
 function [sps_date,sps_sd,sps_swe,sps_density,sps_dmax]=sdkl_snowpit_read(years)
 
 %% snowpits
-load('/Users/jinmeipan/Downloads/MCMC_DataPrep/codes_Calc_Prior/NewPR/sd_allsp.mat')
+load('D:\Desktop\MCMC_Active-BASE-AM\NewPR\sd_allsp.mat')
 
 sps_date=nan;
 sps_sd=nan;
