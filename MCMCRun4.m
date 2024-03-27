@@ -723,76 +723,6 @@ end
 
 
 %% plot the result...
-% function PlotParamResult(Run,property,ipits,symbol)
-%     
-%     MaxLyr=2;
-%     X=1:Run.Niter;
-%     X0=Run.Nburn;
-%     iBurn=Run.Nburn+1:Run.Niter;
-%     
-%     %plot chains and histgram of chains
-%     figure;
-%     for ilyr=1:MaxLyr
-%         
-%         %build legend strings  
-%         if(strcmp(property,'dz')==1 | strcmp(property,'D')==1 | ...
-%            strcmp(property,'rho')==1 | strcmp(property,'Tsnow')==1)
-%                 for i=1:ilyr
-%                     lyrstr{i}=['Lyr',num2str(i)];
-%                 end
-%         else
-%             lyrstr={'Lyr1'};
-%         end
-%         
-%         %plot chains
-%         subplot(2,MaxLyr,ilyr*2-1)
-%         eval(['plot(X,Run.chains_',property,'{ilyr,ipits});'])
-%         hold on;
-%         a=axis; plot([X0,X0],[a(3),a(4)],'k--','Linewidth',2)
-%         
-%         title([symbol,': Nlyr=' num2str(ilyr)])
-%         xlabel('Iteration #');
-%         %ylabel(property);
-%         switch property
-%             case 'dz'
-%                 ylabel('dz (m)');
-%             case 'D'
-%                 ylabel('D (mm)');
-%             case 'Tsnow'
-%                 ylabel('Tsnow ?degC)');
-%             case 'rho'
-%                 ylabel('density (kg/m^3)');
-%             case 'Tsoil'
-%                 ylabel('Tsoil ?degC)');
-%             case 'sig'
-%                 ylabel('soil roughness (m)');
-%             case 'mvs'
-%                 ylabel('soil moisture (m^3/m^3)')
-%             case 'sd'
-%                 ylabel('sd (m)');
-%             case 'swe'
-%                 ylabel('SWE (mm)');
-%             otherwise
-%                 ylabel(property);
-%         end
-%                 
-%             
-%         legend(lyrstr);
-%         
-%         
-%         %plot histgram
-%         subplot(2,MaxLyr,ilyr*2);
-%         eval(['hist(Run.chains_',property,'{ilyr,ipits}(iBurn,:),50);'])
-%         
-%         
-%         title([symbol,': Nlyr=' num2str(ilyr)])
-%         xlabel(property);
-%         ylabel('N');
-%         legend(lyrstr);
-%     end
-% end
-
-
 function PlotParamResult(Run,property,ipits,symbol)
     
     MaxLyr=2;
@@ -825,7 +755,6 @@ function PlotParamResult(Run,property,ipits,symbol)
         
         title([symbol,': Nlyr=' num2str(ilyr)])
         xlabel('Iteration #');
-        %ylabel(property);
         switch property
             case 'dz'
                 ylabel('dz (m)');
@@ -956,20 +885,12 @@ function PlotParamResult(Run,property,ipits,symbol)
                 area01_sum=sum(area01);
                 plot(YYY,PrHist/area01_sum,'ro-');hold on;
             else
-                %note, this code is not correct for normal distributed values
-%                 chains002_min=min(chains002);
-%                 chains002_max=max(chains002);
-%                 chains002_step=(chains002_max-chains002_min)/100;
-%                 chains002_range=(chains002_max-chains002_min);
-%                 YYY=chains002_min:chains002_step:chains002_max;
-
                 switch property
                     case 'dz'
                         if(ilyr2==1)
                             Mu0=Run.DzMean{ipits,ilyr}(ilyr2); Std0=Run.DzStd{ipits,ilyr}(ilyr2);
                         else 
                             Mu0=Run.DzMean{ipits,ilyr}(ilyr2) .* Run.DzMean{ipits,ilyr}(1); 
-                            %Std0=Run.DzStd{ipits,ilyr}(ilyr2) .* Run.DzStd{ipits,ilyr}(1); 
                             Std0=Run.DzMean{ipits,ilyr}(ilyr2) .* Run.DzStd{ipits,ilyr}(1) + ...
                                 Run.DzStd{ipits,ilyr}(ilyr2) .* Run.DzMean{ipits,ilyr}(1);
                         end
@@ -1065,14 +986,12 @@ function PlotParamResult2(Run,property,ipits,symbol,Aa,Bb,Cc)
         
         %plot chains
         subplot(Aa,Bb,Cc)
-        %%subplot(2,MaxLyr,ilyr*2-1)
         eval(['plot(X,Run.chains_',property,'{ilyr,ipits});'])
         hold on;
         a=axis; plot([X0,X0],[a(3),a(4)],'k--','Linewidth',2)
         
         title([symbol,': Nlyr=' num2str(ilyr)])
         xlabel('Iteration #');
-        %ylabel(property);
         switch property
             case 'dz'
                 ylabel('dz (m)');
@@ -1204,13 +1123,6 @@ function PlotParamResult2(Run,property,ipits,symbol,Aa,Bb,Cc)
                 area01_sum=sum(area01);
                 plot(YYY,PrHist/area01_sum,'ro-');hold on;
             else
-                %note, this code is not correct for normal distributed values
-%                 chains002_min=min(chains002);
-%                 chains002_max=max(chains002);
-%                 chains002_step=(chains002_max-chains002_min)/100;
-%                 chains002_range=(chains002_max-chains002_min);
-%                 YYY=chains002_min:chains002_step:chains002_max;
-
                 switch property
                     case 'dz'
                         if(ilyr2==1)
@@ -1288,7 +1200,6 @@ end
 
 
 function Run=PlotChainsLikelihood(Run,property,ilyr,ipits)
-    %figure(1), always plot Obs likelihood
     if(strcmp(property,'dz')==1)
         Cy=Run.StdObs(:,ipits);
         Y=Run.Obs(:,ipits);
@@ -1326,17 +1237,9 @@ function Run=PlotChainsLikelihood(Run,property,ilyr,ipits)
         end
         plot([1:Run.Niter]',likeli,'b.'); hold on;
         ylabel('sum(log(p(\sigma)))');
-        
-%         Cy2=diag(Run.StdObs(:,ipits).^2);
-%         for i=1:Run.Niter
-%             temp=mcmc_obsr(i,:);
-%             likeli2(i)=mvnpdf(temp,Y',Cy2);
-%         end
-%         plot([1:Run.Niter]',likeli,'r.'); hold on;
     end    
     
     
-    %figure(2), plot prior probablity
     figure;
     eval(['chains=Run.chains_',property,'{ilyr,ipits};'])
     
@@ -1440,7 +1343,6 @@ function PlotProfileCompare(Run,ipits,symbol,plotNo)
     
     %plot and compare
     temp=str2num(symbol(4:end));
-%     figure(temp);
     figure(plotNo);
     set(gcf,'color','w');
     subplot(1,3,1);
